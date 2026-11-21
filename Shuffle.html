@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Card Shuffler</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #121212;
+            color: #ffffff;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            user-select: none;
+        }
+        #setup, #active, #done { width: 90%; max-width: 400px; }
+        .hidden { display: none !important; }
+        input {
+            width: 80%;
+            padding: 15px;
+            font-size: 1.5rem;
+            margin: 10px 0 20px;
+            border-radius: 10px;
+            border: none;
+            text-align: center;
+        }
+        button {
+            background: #00e676;
+            color: #000;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 15px;
+            width: 100%;
+            cursor: pointer;
+        }
+        #tap-area {
+            height: 85vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #1e1e1e;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        #pile-num { font-size: 8rem; font-weight: 900; color: #00e676; margin: 10px 0; }
+        #progress { font-size: 1.3rem; color: #aaa; }
+        ol { text-align: left; font-size: 1.3rem; line-height: 1.8; }
+    </style>
+</head>
+<body>
+
+    <div id="setup">
+        <h1>Card Shuffler</h1>
+        <label>Total Cards</label><br>
+        <input type="number" id="cards" value="200"><br>
+        <label>Number of Piles</label><br>
+        <input type="number" id="piles" value="8"><br>
+        <button onclick="start()">Start Shuffling</button>
+    </div>
+
+    <div id="active" class="hidden">
+        <div id="tap-area" onclick="nextCard()">
+            <div id="progress">Card 1 / 200</div>
+            <div style="font-size: 1.5rem; margin-top: 20px;">PUT IN PILE</div>
+            <div id="pile-num">-</div>
+            <div style="color: #888;">Tap anywhere for next card</div>
+        </div>
+    </div>
+
+    <div id="done" class="hidden">
+        <h2>Stack Your Piles:</h2>
+        <ol id="stack-order"></ol>
+        <button onclick="location.reload()">Shuffle Again</button>
+    </div>
+
+    <script>
+        let totalCards = 0, totalPiles = 0, currentCard = 0;
+
+        function start() {
+            totalCards = parseInt(document.getElementById('cards').value);
+            totalPiles = parseInt(document.getElementById('piles').value);
+            if (totalCards < 1 || totalPiles < 2) return alert("Need at least 1 card and 2 piles.");
+            
+            document.getElementById('setup').classList.add('hidden');
+            document.getElementById('active').classList.remove('hidden');
+            nextCard();
+        }
+
+        function nextCard() {
+            currentCard++;
+            if (currentCard > totalCards) return finish();
+
+            const target = Math.floor(Math.random() * totalPiles) + 1;
+            document.getElementById('progress').innerText = `Card ${currentCard} / ${totalCards}`;
+            document.getElementById('pile-num').innerText = target;
+            if (navigator.vibrate) navigator.vibrate(30); // Subtle haptic buzz
+        }
+
+        function finish() {
+            document.getElementById('active').classList.add('hidden');
+            document.getElementById('done').classList.remove('hidden');
+
+            let piles = Array.from({length: totalPiles}, (_, i) => i + 1);
+            for (let i = piles.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [piles[i], piles[j]] = [piles[j], piles[i]];
+            }
+
+            const list = document.getElementById('stack-order');
+            piles.forEach((p, idx) => {
+                const li = document.createElement('li');
+                li.innerText = idx === 0 ? `Pick up PILE ${p} (Top)` : `Put PILE ${p} underneath`;
+                list.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
